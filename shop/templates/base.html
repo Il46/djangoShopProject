@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>{% block title %} Shop {% endblock %}</title>
+</head>
+<body>
+    <header>
+        <a href="{% url 'catalog:home' %}">Магазин</a> |
+        <a href="{% url 'catalog:category_list' %}">Категории</a>
+        <hr>
+    </header>
+
+    <main>
+        {% block content %}{% endblock %}
+    </main>
+
+    <footer>
+        <hr>
+        <small>ENU College • Django Shop</small>
+    </footer>
+</body>
+</html>

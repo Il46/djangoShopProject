@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% block title %}{{ category.name }}{% endblock %}
+{% block content %}
+<h1>{{ category.name }}</h1>
+
+<form method="get">
+  <input name="q" placeholder="Поиск" value="{{ request.GET.q|default:'' }}">
+
+  <input name="min_price" placeholder="Цена от" value="{{ request.GET.min_price|default:'' }}">
+  <input name="max_price" placeholder="Цена до" value="{{ request.GET.max_price|default:'' }}">
+
+  <label>
+    <input type="checkbox" name="in_stock" value="1" {% if request.GET.in_stock == "1" %}checked{% endif %}>
+    В наличии
+  </label>
+
+  <select name="sort">
+    <option value="">По умолчанию</option>
+    <option value="price_asc" {% if request.GET.sort == "price_asc" %}selected{% endif %}>Дешевле</option>
+    <option value="price_desc" {% if request.GET.sort == "price_desc" %}selected{% endif %}>Дороже</option>
+    <option value="new" {% if request.GET.sort == "new" %}selected{% endif %}>Новинки</option>
+  </select>
+
+  <button type="submit">Применить</button>
+  <a href="{% url 'catalog:product_list_by_category' category.slug %}">Сбросить</a>
+</form>
+
+{% if page_obj.object_list %}
+  {% for p in page_obj %}
+    <div>
+      <a href="{% url 'catalog:product_detail' p.slug %}">{{ p.name }}</a>
+      — {{ p.price }} тг
+      {% if p.stock > 0 %} ✅ В наличии {% else %} ❌ Нет {% endif %}
+    </div>
+  {% endfor %}
+
+  <div>
+    {% if page_obj.has_previous %}
+      <a href="?page={{ page_obj.previous_page_number }}{% if qs_params %}&{{ qs_params }}{% endif %}">← Назад</a>
+    {% endif %}
+
+    <span>{{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span>
+
+    {% if page_obj.has_next %}
+      <a href="?page={{ page_obj.next_page_number }}{% if qs_params %}&{{ qs_params }}{% endif %}">Вперёд →</a>
+    {% endif %}
+  </div>
+{% else %}
+  <p>Товаров пока нет.</p>
+{% endif %}
+{% endblock %}
