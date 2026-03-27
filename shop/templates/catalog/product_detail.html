@@ -48,6 +48,13 @@
 {% else %}
   <p>Фото пока нет.</p>
 {% endif %}
-
+{% if product.stock > 0 %}
+  <form method="post" action="{% url 'catalog:add_to_cart' product.slug %}">
+    {% csrf_token %}
+    <button type="submit" style="padding:10px 20px; background-color:#28a745; color:#fff; border:none; border-radius:5px; cursor:pointer;">
+      Добавить в корзину
+    </button>
+  </form>
+{% endif %}
 {% endblock %}
 

@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block title %}Корзина{% endblock %}
+
+{% block content %}
+<h2>Корзина</h2>
+
+{% for item in items %}
+  <p>{{ item.product.name }} — {{ item.quantity }} шт. — {{ item.price }}</p>
+    <form method="post" action="{% url 'catalog:remove_from_cart' item.product.slug %}">
+        {% csrf_token %}
+        <button type="submit" style="padding:5px 10px; background-color:#dc3545; color:#fff; border:none; border-radius:5px; cursor:pointer;">
+            Удалить
+        </button>
+    </form>
+
+{% endfor %}
+
+<p>Итого: {{ total }}</p>
+
+
+{% endblock %}
