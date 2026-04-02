@@ -1,8 +1,11 @@
+from django.contrib import messages
 from django.shortcuts import redirect, render, get_object_or_404
 from django.core.paginator import Paginator
 from .models import Category, Product
 from django.db.models import Q
 from decimal import Decimal, InvalidOperation
+from orders.forms import OrderForm
+from orders.models import OrderItem
 
 def home(request):
     categories = Category.objects.all()
@@ -106,6 +109,67 @@ def cart_view(request):
         'items': items,
         'total': total,
     })
+
+
+def checkout(request):
+    cart = request.session.get('cart', {})
+    products = Product.objects.filter(id__in=cart.keys())
+
+    items = []
+    total = 0
+    stock_errors = []
+
+    for product in products:
+        quantity = cart.get(str(product.id), 0)
+        if quantity <= 0:
+            continue
+        if quantity > product.stock:
+            stock_errors.append(f"Товар \"{product.name}\" доступен в количестве {product.stock}.")
+        items.append({
+            'product': product,
+            'quantity': quantity,
+            'price': product.price * quantity,
+        })
+        total += product.price * quantity
+
+    if request.method == 'POST':
+        form = OrderForm(request.POST)
+        if not items:
+            messages.error(request, "Корзина пуста. Добавьте товар перед оформлением заказа.")
+        elif stock_errors:
+            for error in stock_errors:
+                messages.error(request, error)
+        elif form.is_valid():
+            order = form.save(commit=False)
+            if request.user.is_authenticated:
+                order.user = request.user
+            order.save()
+            for item in items:
+                product = item['product']
+                quantity = item['quantity']
+                OrderItem.objects.create(
+                    order=order,
+                    product=product,
+                    quantity=quantity,
+                    price=product.price,
+                )
+                product.stock = product.stock - quantity
+                if product.stock < 0:
+                    product.stock = 0
+                product.save(update_fields=['stock'])
+            request.session['cart'] = {}
+            request.session.modified = True
+            return render(request, 'catalog/order_success.html', {'order': order})
+    else:
+        form = OrderForm()
+
+    return render(request, 'catalog/checkout.html', {
+        'form': form,
+        'items': items,
+        'total': total,
+        'stock_errors': stock_errors,
+    })
+
 
 def remove_from_cart(request, slug):
     cart = request.session.get('cart', {})

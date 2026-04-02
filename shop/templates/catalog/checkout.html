@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+
+{% block title %}Оформление заказа{% endblock %}
+
+{% block content %}
+<h2>Оформление заказа</h2>
+
+{% if not items %}
+  <p>Ваша корзина пуста.</p>
+  <p><a href="{% url 'catalog:home' %}">Вернуться в каталог</a></p>
+{% else %}
+  {% if stock_errors %}
+    <ul>
+      {% for error in stock_errors %}
+        <li>{{ error }}</li>
+      {% endfor %}
+    </ul>
+  {% endif %}
+
+  <h3>Состав заказа</h3>
+  <ul>
+    {% for item in items %}
+      <li>{{ item.product.name }} — {{ item.quantity }} шт. — {{ item.price }}</li>
+    {% endfor %}
+  </ul>
+  <p>Итого: {{ total|floatformat:2 }}</p>
+
+  <h3>Данные для заказа</h3>
+  <form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit">Оформить заказ</button>
+  </form>
+{% endif %}
+{% endblock %}

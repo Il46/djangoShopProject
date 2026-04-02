@@ -4,18 +4,24 @@
 {% block content %}
 <h2>Корзина</h2>
 
-{% for item in items %}
-  <p>{{ item.product.name }} — {{ item.quantity }} шт. — {{ item.price }}</p>
-    <form method="post" action="{% url 'catalog:remove_from_cart' item.product.slug %}">
+{% if items %}
+  {% for item in items %}
+    <div>
+      <p>{{ item.product.name }} — {{ item.quantity }} шт. — {{ item.price }}</p>
+      <form method="post" action="{% url 'catalog:remove_from_cart' item.product.slug %}">
         {% csrf_token %}
         <button type="submit" style="padding:5px 10px; background-color:#dc3545; color:#fff; border:none; border-radius:5px; cursor:pointer;">
             Удалить
         </button>
-    </form>
+      </form>
+    </div>
+  {% endfor %}
 
-{% endfor %}
-
-<p>Итого: {{ total }}</p>
-
+  <p>Итого: {{ total|floatformat:2 }}</p>
+  <p><a href="{% url 'catalog:checkout' %}">Перейти к оформлению</a></p>
+{% else %}
+  <p>Корзина пуста.</p>
+  <p><a href="{% url 'catalog:home' %}">Продолжить покупки</a></p>
+{% endif %}
 
 {% endblock %}
